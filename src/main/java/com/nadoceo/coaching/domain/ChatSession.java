@@ -72,9 +72,17 @@ public class ChatSession extends AggregateRoot {
      * messages JSON: [{"role":"user","content":"..."},{"role":"assistant","content":"..."}]
      */
     public void appendMessage(String role, String content) {
-        // 간단한 JSON 배열 추가 (jackson 없이)
+        appendMessage(role, content, null);
+    }
+
+    public void appendMessage(String role, String content, String faqHitsJson) {
         String escaped = content.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "");
-        String entry = "{\"role\":\"" + role + "\",\"content\":\"" + escaped + "\"}";
+        String entry;
+        if (faqHitsJson != null && !faqHitsJson.isEmpty()) {
+            entry = "{\"role\":\"" + role + "\",\"content\":\"" + escaped + "\",\"faqHits\":" + faqHitsJson + "}";
+        } else {
+            entry = "{\"role\":\"" + role + "\",\"content\":\"" + escaped + "\"}";
+        }
         if (messages == null || messages.equals("[]")) {
             messages = "[" + entry + "]";
         } else {

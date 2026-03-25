@@ -69,11 +69,13 @@ public class ProcessMessageUseCase {
         // 매 질문마다 FAQ 검색 (TERM_LOOKUP 제외)
         String faqContext = null;
         String faqHitEvent = null;
+        String faqHitsJson = null;
         if (state != CoachingState.TERM_LOOKUP) {
             try {
                 var faqResult = searchFaqForStream(command, session);
                 faqContext = faqResult.context();
                 faqHitEvent = faqResult.sseEvent();
+                faqHitsJson = faqResult.faqHitsJson();
             } catch (Exception e) {
                 // FAQ 검색 실패해도 AI 응답은 진행
             }
@@ -83,6 +85,7 @@ public class ProcessMessageUseCase {
         String sessionIdEvent = "%%SESSION_ID%%" + session.getId().toString();
         final String finalFaqContext = faqContext;
         final String finalFaqHitEvent = faqHitEvent;
+        final String finalFaqHitsJson = faqHitsJson;
         final ChatSession finalSession = session;
 
         final int turnCount = session.getTotalTurns();
@@ -112,13 +115,13 @@ public class ProcessMessageUseCase {
                 Flux.fromIterable(metaEvents),
                 aiStream.doOnNext(responseBuffer::append)
                         .doOnComplete(() -> {
-                            finalSession.appendMessage("assistant", responseBuffer.toString());
+                            finalSession.appendMessage("assistant", responseBuffer.toString(), finalFaqHitsJson);
                             sessionRepository.save(finalSession);
                         })
         );
     }
 
-    private record FaqSearchOutput(String context, String sseEvent) {}
+    private record FaqSearchOutput(String context, String sseEvent, String faqHitsJson) {}
 
     private FaqSearchOutput searchFaqForStream(Command command, ChatSession session) {
         Optional<KnowledgeSearchPort.SearchResult> result =
@@ -139,12 +142,18 @@ public class ProcessMessageUseCase {
                             faq.question().replace("\"", "\\\"").replace("\n", " "),
                             faq.answer().replace("\"", "\\\"").replace("\n", " "));
 
-            return new FaqSearchOutput(context, sseEvent);
+            // 세션 저장용 JSON
+            String faqHitsJson = "[{\"faqId\":\"%s\",\"similarity\":%.2f,\"question\":\"%s\",\"answer\":\"%s\"}]"
+                    .formatted(faq.faqId(), faq.similarity(),
+                            faq.question().replace("\"", "\\\"").replace("\n", " "),
+                            faq.answer().replace("\"", "\\\"").replace("\n", " "));
+
+            return new FaqSearchOutput(context, sseEvent, faqHitsJson);
         } else {
             eventPublisher.publishEvent(FaqSearchRequested.miss(
                     session.getId(), session.getStudentId(), session.getCourseId(),
                     session.getTotalTurns(), command.message()));
-            return new FaqSearchOutput(null, null);
+            return new FaqSearchOutput(null, null, null);
         }
     }
 
