@@ -10,14 +10,16 @@ import { Separator } from '../ui/separator';
 import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
 import { TooltipProvider } from '../ui/tooltip';
 import { useAuthStore } from '../../store/authStore';
-import keycloak from '../../auth/keycloak';
+import { useNavigate } from 'react-router-dom';
 
 export function DualChatLayout() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const { userName, authenticated } = useAuthStore();
+  const { userName, clearAuth } = useAuthStore();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
-    keycloak.logout({ redirectUri: window.location.origin });
+    clearAuth();
+    navigate('/login');
   };
 
   const displayName = userName || '사용자';

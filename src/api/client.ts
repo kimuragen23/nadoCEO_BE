@@ -1,11 +1,12 @@
-import keycloak from '../auth/keycloak';
+import { useAuthStore } from '../store/authStore';
 
 const API_BASE = '/api/v1';
 
 function getAuthHeaders(): Record<string, string> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (keycloak.token) {
-    headers['Authorization'] = `Bearer ${keycloak.token}`;
+  const token = useAuthStore.getState().token;
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
   return headers;
 }

@@ -6,6 +6,7 @@ interface AuthStore {
   userName: string | null;
   userRole: string | null;
   token: string | null;
+  refreshToken: string | null;
 
   setAuth: (data: {
     authenticated: boolean;
@@ -13,6 +14,7 @@ interface AuthStore {
     userName: string | null;
     userRole: string | null;
     token: string | null;
+    refreshToken?: string | null;
   }) => void;
   clearAuth: () => void;
 }
@@ -23,8 +25,9 @@ export const useAuthStore = create<AuthStore>((set) => ({
   userName: null,
   userRole: null,
   token: null,
+  refreshToken: null,
 
-  setAuth: (data) => set(data),
+  setAuth: (data) => set({ ...data, refreshToken: data.refreshToken ?? null }),
   clearAuth: () =>
     set({
       authenticated: false,
@@ -32,5 +35,6 @@ export const useAuthStore = create<AuthStore>((set) => ({
       userName: null,
       userRole: null,
       token: null,
+      refreshToken: null,
     }),
 }));
