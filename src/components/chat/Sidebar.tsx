@@ -19,14 +19,24 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const [history, setHistory] = useState<SessionSummary[]>([]);
   const resetSession = useChatStore((s) => s.resetSession);
   const restoreSession = useChatStore((s) => s.restoreSession);
+  const mainSessionId = useChatStore((s) => s.mainSessionId);
+  const mainIsStreaming = useChatStore((s) => s.mainIsStreaming);
   const { userId } = useAuthStore();
 
-  useEffect(() => {
+  const loadHistory = () => {
     if (!userId) return;
     getSessionHistory(userId)
       .then(setHistory)
       .catch((err) => console.error('Failed to load history:', err));
-  }, [userId]);
+  };
+
+  // 초기 로드
+  useEffect(() => { loadHistory(); }, [userId]);
+
+  // 스트리밍 완료 시 히스토리 갱신 (새 세션이 생겼을 수 있으므로)
+  useEffect(() => {
+    if (!mainIsStreaming) loadHistory();
+  }, [mainIsStreaming]);
 
   const handleNewSession = () => {
     resetSession();
