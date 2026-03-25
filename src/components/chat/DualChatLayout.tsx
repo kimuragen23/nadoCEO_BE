@@ -9,18 +9,27 @@ import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Separator } from '../ui/separator';
 import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
 import { TooltipProvider } from '../ui/tooltip';
+import { useAuthStore } from '../../store/authStore';
+import keycloak from '../../auth/keycloak';
 
 export function DualChatLayout() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const { userName, authenticated } = useAuthStore();
+
+  const handleLogout = () => {
+    keycloak.logout({ redirectUri: window.location.origin });
+  };
+
+  const displayName = userName || '사용자';
 
   return (
     <TooltipProvider>
       <div className="flex h-screen bg-[#F4F5F0] text-slate-900 overflow-hidden font-sans">
         {/* Desktop Sidebar */}
         <div className="hidden lg:block">
-          <Sidebar 
-            isCollapsed={isSidebarCollapsed} 
-            onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
+          <Sidebar
+            isCollapsed={isSidebarCollapsed}
+            onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           />
         </div>
 
@@ -32,7 +41,7 @@ export function DualChatLayout() {
               {/* Mobile Sidebar Trigger */}
               <div className="lg:hidden">
                 <Sheet>
-                  <SheetTrigger 
+                  <SheetTrigger
                     render={
                       <Button variant="ghost" size="icon" className="h-9 w-9 text-slate-500">
                         <Menu className="w-5 h-5" />
@@ -54,7 +63,7 @@ export function DualChatLayout() {
                 <span className="text-sm font-semibold text-slate-500">현재 코칭</span>
                 <Separator orientation="vertical" className="h-4 bg-slate-300" />
                 <Button variant="ghost" size="sm" className="text-slate-800 font-bold hover:bg-slate-200/50 gap-2 h-9 px-4 rounded-xl border border-slate-200 bg-white shadow-sm">
-                  Java 기초: NPE 해결 방법
+                  Java 기초
                   <ChevronDown className="w-4 h-4 opacity-50" />
                 </Button>
               </div>
@@ -67,10 +76,15 @@ export function DualChatLayout() {
                     <User className="w-4 h-4" />
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-sm font-medium text-slate-700 hidden lg:inline">김학생</span>
+                <span className="text-sm font-medium text-slate-700 hidden lg:inline">{displayName}</span>
               </div>
               <Separator orientation="vertical" className="h-6 bg-slate-300 hidden lg:block" />
-              <Button variant="ghost" size="sm" className="text-slate-500 hover:text-red-600 hover:bg-red-50 gap-2 h-8">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="text-slate-500 hover:text-red-600 hover:bg-red-50 gap-2 h-8"
+              >
                 <LogOut className="w-4 h-4" />
                 <span className="hidden lg:inline">로그아웃</span>
               </Button>

@@ -1,9 +1,19 @@
+import keycloak from '../auth/keycloak';
+
 const API_BASE = '/api/v1';
+
+function getAuthHeaders(): Record<string, string> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (keycloak.token) {
+    headers['Authorization'] = `Bearer ${keycloak.token}`;
+  }
+  return headers;
+}
 
 export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     headers: {
-      'Content-Type': 'application/json',
+      ...getAuthHeaders(),
       ...options?.headers,
     },
     ...options,
@@ -36,7 +46,7 @@ export function streamChat(
 
   fetch(`${API_BASE}/chat`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(),
     body: JSON.stringify(body),
     signal: controller.signal,
   })
@@ -50,13 +60,11 @@ export function streamChat(
         const { done, value } = await reader.read();
         if (done) break;
         const text = decoder.decode(value, { stream: true });
-        // SSE 포맷: "data:chunk\n\n" 파싱
         const lines = text.split('\n');
         for (const line of lines) {
           if (line.startsWith('data:')) {
             onChunk(line.slice(5));
           } else if (line.trim().length > 0) {
-            // plain text 스트리밍
             onChunk(line);
           }
         }
@@ -85,10 +93,48 @@ export function submitFeedback(body: FeedbackBody) {
   });
 }
 
+// --- Session History API ---
+
+export interface SessionSummary {
+  id: string;
+  title: string;
+  totalTurns: number;
+  resolved: boolean;
+  createdAt: string;
+}
+
+export function getSessionHistory(studentId: string) {
+  return apiFetch<SessionSummary[]>(`/chat/history?studentId=${studentId}`);
+}
+
 // --- FAQ API ---
 
 export function getFaqs(courseId: string) {
   return apiFetch<any[]>(`/faq/${courseId}`);
+}
+
+// --- Course API ---
+
+export interface CourseInfo {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export function getCourses() {
+  return apiFetch<CourseInfo[]>('/courses');
+}
+
+// --- User API ---
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  role: string;
+}
+
+export function getUserProfile(userId: string) {
+  return apiFetch<UserProfile>(`/user/${userId}`);
 }
 
 // --- Learning Path API ---
