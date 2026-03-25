@@ -67,6 +67,21 @@ public class ChatSession extends AggregateRoot {
         registerEvent(new StudentQuestionAsked(id, studentId, courseId, turn, message));
     }
 
+    /**
+     * 대화 히스토리에 메시지를 추가한다.
+     * messages JSON: [{"role":"user","content":"..."},{"role":"assistant","content":"..."}]
+     */
+    public void appendMessage(String role, String content) {
+        // 간단한 JSON 배열 추가 (jackson 없이)
+        String escaped = content.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "");
+        String entry = "{\"role\":\"" + role + "\",\"content\":\"" + escaped + "\"}";
+        if (messages == null || messages.equals("[]")) {
+            messages = "[" + entry + "]";
+        } else {
+            messages = messages.substring(0, messages.length() - 1) + "," + entry + "]";
+        }
+    }
+
     public void markResolved(String summary) {
         this.resolved = true;
         this.resolvedAt = Instant.now();

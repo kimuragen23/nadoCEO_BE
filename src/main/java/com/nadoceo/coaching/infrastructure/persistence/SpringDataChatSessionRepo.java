@@ -10,5 +10,7 @@ public interface SpringDataChatSessionRepo extends JpaRepository<ChatSession, UU
 
     List<ChatSession> findByStudentIdOrderByCreatedAtDesc(UUID studentId);
 
+    List<ChatSession> findByStudentIdAndChatTypeOrderByCreatedAtDesc(UUID studentId, com.nadoceo.coaching.domain.ChatType chatType);
+
     List<ChatSession> findByCourseIdAndResolvedTrue(UUID courseId);
 }

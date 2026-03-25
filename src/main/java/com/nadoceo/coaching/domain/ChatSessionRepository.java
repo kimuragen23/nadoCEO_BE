@@ -15,5 +15,7 @@ public interface ChatSessionRepository {
 
     List<ChatSession> findByStudentId(UUID studentId);
 
+    List<ChatSession> findByStudentIdAndChatType(UUID studentId, ChatType chatType);
+
     List<ChatSession> findByCourseIdAndResolved(UUID courseId);
 }

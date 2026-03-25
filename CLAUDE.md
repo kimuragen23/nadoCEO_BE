@@ -1,5 +1,12 @@
 # NADOCEO Coaching AI — Backend
 
+## Rules
+
+- 코드 수정 후 반드시 git commit + push 할 것 (브랜치 전략: feature → develop → main)
+- 백엔드 수정 시 `./gradlew build -x test` 빌드 확인 후 K3s 재배포까지 완료할 것
+- K8s secret에 실제 API 키를 넣지 말 것 (gitignore에 k8s/ 포함)
+- 커밋 메시지는 conventional commits 형식 (feat/fix/docs/chore)
+
 ## Project Overview
 
 IT 교육 코칭 AI 백엔드. 소크라테스식 대화로 학생의 문제 해결을 유도하고,

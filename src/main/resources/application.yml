@@ -53,7 +53,7 @@ nadoceo:
     provider: ${AI_PROVIDER:anthropic}
   coaching:
     max-socratic-turns: 2
-    faq-similarity-threshold: 0.85
+    faq-similarity-threshold: 0.7
 
 # --- Swagger / OpenAPI ---
 springdoc:
