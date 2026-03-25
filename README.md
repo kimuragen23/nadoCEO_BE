@@ -1,122 +1,97 @@
-# NADOCEO Coaching AI — Backend
+# NADOCEO Coaching AI — Frontend
 
-IT 교육 코칭 AI 백엔드. 소크라테스식 대화로 학생의 문제 해결을 유도하고, 벡터 DB FAQ + 학습 경로 추적으로 학생 복습 및 강사 분석을 지원합니다.
+IT 교육 코칭 AI 프론트엔드. 소크라테스식 대화 UI + FAQ 벡터 검색 + 학습 경로 시각화.
 
 ## Tech Stack
 
-| 항목 | 기술 |
-|---|---|
-| Runtime | Java 23 (Virtual Threads, Record, Pattern Matching, Sealed Classes) |
-| Framework | Spring Boot 3.3 + Spring WebFlux (SSE 스트리밍) |
-| Architecture | DDD + Clean Architecture (Bounded Context, Ports & Adapters) |
-| AI | Spring AI — OpenAI GPT-4o + text-embedding-3-small |
-| DB | PostgreSQL + pgvector (벡터 유사도 검색) |
-| Migration | Flyway |
-| Auth | Keycloak OAuth2 (OIDC JWT Resource Server) |
-| Docs | Swagger / OpenAPI 3 (springdoc-openapi) |
-| Build | Gradle (Groovy DSL) |
-| Deploy | K3s (로컬 Kubernetes, NodePort 21009) |
+- **React 19** + TypeScript 5.8
+- **Vite 6** (빌드 + 개발 서버)
+- **Tailwind CSS 4** + shadcn/ui
+- **Zustand 5** (상태 관리)
+- **React Router 7** (라우팅)
 
 ## Getting Started
 
 ```bash
+# 의존성 설치
+npm install
+
+# 개발 서버 실행 (포트 3000)
+npm run dev
+
 # 빌드
-./gradlew build
+npm run build
 
-# 개발 서버 실행 (포트 8080)
-./gradlew bootRun
-
-# Docker 이미지 빌드
-docker build -t nadoceo-backend .
+# 타입 체크
+npm run lint
 ```
 
-### 환경 변수
+## Architecture
 
-| 변수 | 설명 | 기본값 |
+### 듀얼 채팅 UI
+
+| 패널 | 역할 | 색상 |
 |---|---|---|
-| `DB_URL` | PostgreSQL 접속 URL | `jdbc:postgresql://localhost:5432/nadoceo` |
-| `DB_USERNAME` | DB 사용자 | `nadoceo` |
-| `DB_PASSWORD` | DB 비밀번호 | `nadoceo` |
-| `OPENAI_API_KEY` | OpenAI API 키 | — |
-| `KEYCLOAK_ISSUER_URI` | Keycloak Realm URL | `http://localhost:30808/realms/nadoceo` |
+| 왼쪽 (Main) | 소크라테스식 코칭 대화 | Blue |
+| 오른쪽 (Sub) | 용어/개념 검색 | Amber |
+| 하단 바 | 학습 경로 타임라인 | — |
 
-## Architecture — DDD + Clean Architecture
-
-### Bounded Contexts
+### 프로젝트 구조
 
 ```
-coaching     소크라테스 코칭 플로우, AI SSE 스트리밍 대화
-knowledge    FAQ 관리, 벡터 유사도 검색, 임베딩
-analytics    학습 경로 이벤트 기록, 강사 분석 쿼리
-identity     사용자, 학원, 과목
-shared       Value Objects, DomainEvent, SecurityConfig
+src/
+├── api/
+│   └── client.ts              # 백엔드 API 클라이언트 (SSE 스트리밍)
+├── components/
+│   ├── chat/                   # 채팅 컴포넌트
+│   │   ├── DualChatLayout.tsx  # 듀얼 레이아웃 (메인 + 서브)
+│   │   ├── MainChatPanel.tsx   # 코칭 채팅 패널
+│   │   ├── SubChatPanel.tsx    # 용어 검색 패널
+│   │   ├── ChatInput.tsx       # 메시지 입력
+│   │   ├── ChatMessageList.tsx # 메시지 목록
+│   │   ├── AiMessage.tsx       # AI 응답 버블
+│   │   ├── UserMessage.tsx     # 사용자 메시지 버블
+│   │   ├── FaqHitCards.tsx     # FAQ 추천 카드
+│   │   ├── FeedbackButtons.tsx # 해결/미해결 피드백
+│   │   ├── LearningPathBar.tsx # 하단 학습경로 바
+│   │   └── Sidebar.tsx         # 사이드바
+│   ├── learning-path/          # 학습 경로 컴포넌트
+│   │   ├── PathHeader.tsx
+│   │   └── TurnTimeline.tsx
+│   └── ui/                     # shadcn/ui 컴포넌트
+├── hooks/
+│   └── useChat.ts              # 채팅 훅 (SSE 스트리밍 연동)
+├── store/
+│   └── chatStore.ts            # Zustand 상태 관리
+├── pages/
+│   ├── chat/ChatPage.tsx
+│   └── learning-path/LearningPathPage.tsx
+├── types/
+│   ├── chat.ts                 # Message, FaqHit 타입
+│   └── learningPath.ts         # LearningPathEvent 타입
+└── lib/
+    └── utils.ts                # cn() 유틸리티
 ```
 
-### Layer 구조
+## Backend Integration
+
+백엔드 API (`localhost:21009`)와 Vite proxy로 연동:
 
 ```
-{context}/
-├── domain/          엔티티, Value Object, Repository Port, Domain Service
-├── application/     Use Case, Output Port
-├── infrastructure/  JPA 구현, AI 어댑터, 이벤트 리스너
-└── presentation/    REST Controller, DTO
+프론트 (localhost:3000) → Vite proxy → 백엔드 (localhost:21009)
 ```
 
-### Context 간 통신
+### API Endpoints
 
-- **coaching → analytics**: Domain Event (Spring `ApplicationEventPublisher` + `@Async`)
-- **coaching → knowledge**: Output Port (`KnowledgeSearchPort` 인터페이스)
-
-```
-[ChatController] → [ProcessMessageUseCase] → [AiChatPort] → [SpringAiChatAdapter] → OpenAI
-                                            → [KnowledgeSearchPort] → [SearchFaqUseCase] → pgvector
-                    domain events ─────────→ [CoachingEventListener] → [RecordEventUseCase] → DB
-```
-
-## API Endpoints
-
-| Method | Path | 설명 | 권한 |
-|---|---|---|---|
-| POST | `/api/v1/chat` | 메시지 전송 + SSE 스트리밍 | student |
-| GET | `/api/v1/chat/{sessionId}` | 세션 히스토리 | student |
-| POST | `/api/v1/chat/feedback` | 피드백 (해결/미해결) | student |
-| GET | `/api/v1/faq/{courseId}` | 과목 FAQ 목록 | student |
-| POST | `/api/v1/faq` | FAQ 등록 | instructor |
-| POST | `/api/v1/faq/{faqId}/upvote` | FAQ 좋아요 | student |
-| GET | `/api/v1/learning-path/{sessionId}` | 세션 타임라인 | student |
-| GET | `/api/v1/learning-path/my?studentId=` | 내 학습 경로 | student |
-| GET | `/api/v1/analytics/{courseId}/terms` | 검색 용어 Top N | instructor |
-| GET | `/api/v1/analytics/{courseId}/turns` | 평균 해결 턴 수 | instructor |
-| GET | `/api/v1/analytics/{courseId}/faq-hit-rate` | FAQ 히트율 추이 | instructor |
-| GET | `/api/v1/analytics/{courseId}/students` | 학생별 패턴 | instructor |
-
-**Swagger UI**: http://localhost:21009/swagger-ui.html
-
-## Keycloak
-
-- **Realm**: `nadoceo` (import: `keycloak/nadoceo-realm.json`)
-- **Roles**: `student`, `instructor`, `admin` (계층형)
-- **Clients**: `nadoceo-backend` (Confidential), `nadoceo-frontend` (Public SPA + PKCE)
-
-## K3s Deployment
-
-```bash
-# 1. Docker 이미지 빌드 & 로컬 레지스트리 push
-docker build -t localhost:5000/nadoceo-backend:latest .
-docker push localhost:5000/nadoceo-backend:latest
-
-# 2. Keycloak Realm 등록 (Admin Console → Import)
-# 파일: keycloak/nadoceo-realm.json
-
-# 3. K3s 배포
-kubectl apply -f k8s/namespace.yml
-kubectl apply -f k8s/secret.yml      # OPENAI_API_KEY 설정 필요
-kubectl apply -f k8s/configmap.yml
-kubectl apply -f k8s/postgres/
-kubectl apply -f k8s/deployment.yml
-kubectl apply -f k8s/service.yml      # NodePort 21009
-```
+| Method | Path | 설명 |
+|---|---|---|
+| POST | `/api/v1/chat` | 메시지 전송 + SSE 스트리밍 |
+| GET | `/api/v1/chat/{sessionId}` | 세션 히스토리 |
+| POST | `/api/v1/chat/feedback` | 피드백 제출 |
+| GET | `/api/v1/faq/{courseId}` | FAQ 목록 |
+| GET | `/api/v1/learning-path/{sessionId}` | 학습 경로 타임라인 |
 
 ## Related
 
-- **Frontend**: [nadoCEO_FE](https://github.com/kimuragen23/nadoCEO_FE)
+- **Backend**: [nadoCEO_BE](https://github.com/kimuragen23/nadoCEO_BE)
+- **Swagger UI**: http://localhost:21009/swagger-ui.html
