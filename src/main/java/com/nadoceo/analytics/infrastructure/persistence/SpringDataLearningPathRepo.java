@@ -23,6 +23,13 @@ public interface SpringDataLearningPathRepo extends JpaRepository<LearningPathEv
     List<Object[]> findTermsByStudent(@Param("studentId") UUID studentId);
 
     @Query(value = """
+            SELECT session_id FROM learning_path_events
+            WHERE student_id = :studentId AND event_type = 'TERM_SEARCHED' AND content = :term
+            ORDER BY created_at DESC LIMIT 1
+            """, nativeQuery = true)
+    java.util.Optional<UUID> findSessionByTerm(@Param("studentId") UUID studentId, @Param("term") String term);
+
+    @Query(value = """
             SELECT content, COUNT(*) AS search_count
             FROM learning_path_events
             WHERE course_id = :courseId AND event_type = 'TERM_SEARCHED'
