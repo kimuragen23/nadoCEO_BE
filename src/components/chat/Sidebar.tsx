@@ -37,11 +37,12 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
     (e?.currentTarget as HTMLElement)?.blur();
     try {
       const session = await getSession(sessionId);
-      const raw: Array<{ role: string; content: string }> = JSON.parse(session.messages || '[]');
+      const raw: Array<{ role: string; content: string; faqHits?: any[] }> = JSON.parse(session.messages || '[]');
       const messages: Message[] = raw.map((m, i) => ({
         id: `${sessionId}-${i}`,
         role: m.role as 'user' | 'assistant',
         content: m.content,
+        faqHits: m.faqHits,
         createdAt: session.createdAt,
       }));
       restoreSession(sessionId, messages, session.totalTurns);
