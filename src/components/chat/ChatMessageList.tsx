@@ -9,14 +9,17 @@ interface ChatMessageListProps {
 }
 
 export function ChatMessageList({ messages, isStreaming }: ChatMessageListProps) {
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const el = containerRef.current;
+    if (el) {
+      el.scrollTop = el.scrollHeight;
+    }
   }, [messages, isStreaming]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
+    <div ref={containerRef} className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
       {messages.map((msg, index) => {
         const isLast = index === messages.length - 1;
         if (msg.role === 'user') {
@@ -31,7 +34,6 @@ export function ChatMessageList({ messages, isStreaming }: ChatMessageListProps)
           />
         );
       })}
-      <div ref={bottomRef} />
     </div>
   );
 }
