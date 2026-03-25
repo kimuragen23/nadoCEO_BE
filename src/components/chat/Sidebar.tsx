@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, History, Settings, HelpCircle, MessageSquare, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, History, Settings, HelpCircle, MessageSquare, ChevronLeft, ChevronRight, Sparkles, BookOpen } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
@@ -19,6 +20,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const [history, setHistory] = useState<SessionSummary[]>([]);
   const resetSession = useChatStore((s) => s.resetSession);
   const restoreSession = useChatStore((s) => s.restoreSession);
+  const navigate = useNavigate();
   const mainSessionId = useChatStore((s) => s.mainSessionId);
   const mainIsStreaming = useChatStore((s) => s.mainIsStreaming);
   const { userId } = useAuthStore();
@@ -188,25 +190,25 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button variant="ghost" className={cn("w-full justify-start gap-3 h-10 rounded-xl text-slate-600 hover:bg-white", isCollapsed && "px-0 justify-center")} />
+              <Button variant="ghost" onClick={() => navigate('/faq')} className={cn("w-full justify-start gap-3 h-10 rounded-xl text-slate-600 hover:bg-purple-50 hover:text-purple-600", isCollapsed && "px-0 justify-center")} />
             }
           >
-            <HelpCircle className="w-4 h-4 text-slate-400" />
-            {!isCollapsed && <span className="text-sm font-medium">도움말</span>}
+            <Sparkles className="w-4 h-4 text-purple-400" />
+            {!isCollapsed && <span className="text-sm font-medium">FAQ 모음</span>}
           </TooltipTrigger>
-          {isCollapsed && <TooltipContent side="right">도움말</TooltipContent>}
+          {isCollapsed && <TooltipContent side="right">FAQ 모음</TooltipContent>}
         </Tooltip>
 
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button variant="ghost" className={cn("w-full justify-start gap-3 h-10 rounded-xl text-slate-600 hover:bg-white", isCollapsed && "px-0 justify-center")} />
+              <Button variant="ghost" onClick={() => navigate('/glossary')} className={cn("w-full justify-start gap-3 h-10 rounded-xl text-slate-600 hover:bg-amber-50 hover:text-amber-600", isCollapsed && "px-0 justify-center")} />
             }
           >
-            <Settings className="w-4 h-4 text-slate-400" />
-            {!isCollapsed && <span className="text-sm font-medium">설정</span>}
+            <BookOpen className="w-4 h-4 text-amber-400" />
+            {!isCollapsed && <span className="text-sm font-medium">용어집</span>}
           </TooltipTrigger>
-          {isCollapsed && <TooltipContent side="right">설정</TooltipContent>}
+          {isCollapsed && <TooltipContent side="right">용어집</TooltipContent>}
         </Tooltip>
       </div>
     </aside>

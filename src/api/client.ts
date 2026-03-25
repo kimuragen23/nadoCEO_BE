@@ -146,8 +146,29 @@ export function getSessionHistory(studentId: string) {
 
 // --- FAQ API ---
 
+export interface FaqItem {
+  id: string;
+  courseId: string;
+  question: string;
+  answer: string;
+  upvotes: number;
+  source: string;
+  createdAt: string;
+}
+
 export function getFaqs(courseId: string) {
-  return apiFetch<any[]>(`/faq/${courseId}`);
+  return apiFetch<FaqItem[]>(`/faq/${courseId}`);
+}
+
+// --- Glossary API ---
+
+export interface GlossaryTerm {
+  term: string;
+  lastSearchedAt: string;
+}
+
+export function getGlossary(studentId: string) {
+  return apiFetch<GlossaryTerm[]>(`/learning-path/glossary?studentId=${studentId}`);
 }
 
 // --- Course API ---

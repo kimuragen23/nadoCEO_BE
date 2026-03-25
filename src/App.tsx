@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ChatPage } from './pages/chat/ChatPage';
 import { LearningPathPage } from './pages/learning-path/LearningPathPage';
+import { FaqListPage } from './pages/faq/FaqListPage';
+import { GlossaryPage } from './pages/glossary/GlossaryPage';
 import { LoginPage } from './pages/login/LoginPage';
 import { useAuthStore } from './store/authStore';
 
@@ -16,22 +18,10 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/" element={<Navigate to="/course/java-basic/chat" replace />} />
-        <Route
-          path="/course/:courseId/chat"
-          element={
-            <ProtectedRoute>
-              <ChatPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/learning-path/:sessionId"
-          element={
-            <ProtectedRoute>
-              <LearningPathPage />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/course/:courseId/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+        <Route path="/learning-path/:sessionId" element={<ProtectedRoute><LearningPathPage /></ProtectedRoute>} />
+        <Route path="/faq" element={<ProtectedRoute><FaqListPage /></ProtectedRoute>} />
+        <Route path="/glossary" element={<ProtectedRoute><GlossaryPage /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );
