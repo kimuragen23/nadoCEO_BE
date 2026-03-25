@@ -133,10 +133,11 @@ public class ProcessMessageUseCase {
             String context = "관련 FAQ가 있습니다:\n질문: %s\n답변: %s\n(유사도: %.0f%%)\n이 정보를 참고하여 코칭하세요."
                     .formatted(faq.question(), faq.answer(), faq.similarity() * 100);
 
-            // FAQ 히트 정보를 SSE 이벤트로 프론트에 전달
-            String sseEvent = "%%FAQ_HIT%%{\"faqId\":\"%s\",\"similarity\":%.2f,\"question\":\"%s\"}"
+            // FAQ 히트 정보를 SSE 이벤트로 프론트에 전달 (질문 + 답변)
+            String sseEvent = "%%FAQ_HIT%%{\"faqId\":\"%s\",\"similarity\":%.2f,\"question\":\"%s\",\"answer\":\"%s\"}"
                     .formatted(faq.faqId(), faq.similarity(),
-                            faq.question().replace("\"", "\\\"").replace("\n", " "));
+                            faq.question().replace("\"", "\\\"").replace("\n", " "),
+                            faq.answer().replace("\"", "\\\"").replace("\n", " "));
 
             return new FaqSearchOutput(context, sseEvent);
         } else {
