@@ -1,0 +1,133 @@
+import React from 'react';
+import { Plus, History, Settings, HelpCircle, MessageSquare, ChevronLeft, ChevronRight } from 'lucide-react';
+import { cn } from '../../lib/utils';
+import { Button } from '../ui/button';
+import { ScrollArea } from '../ui/scroll-area';
+import { Separator } from '../ui/separator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+
+interface SidebarProps {
+  isCollapsed: boolean;
+  onToggle: () => void;
+}
+
+const mockHistory = [
+  { id: '1', title: 'Java NPE 해결 방법', date: '2024-03-24' },
+  { id: '2', title: 'Spring Boot 시작하기', date: '2024-03-23' },
+  { id: '3', title: 'React Hooks 이해하기', date: '2024-03-22' },
+  { id: '4', title: '데이터베이스 정규화', date: '2024-03-21' },
+];
+
+export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
+  return (
+    <aside 
+      className={cn(
+        "flex flex-col bg-[#F4F5F0] border-r border-slate-200/60 transition-all duration-300 ease-in-out shrink-0 z-30",
+        isCollapsed ? "w-16" : "w-64"
+      )}
+    >
+      {/* Sidebar Header */}
+      <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200/60 shrink-0">
+        {!isCollapsed && (
+          <h1 className="text-lg font-bold tracking-tight text-slate-800 flex items-center gap-2">
+            <span className="bg-blue-600 text-white p-1 rounded-md text-xs">AI</span>
+            NADOCEO
+          </h1>
+        )}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={onToggle}
+          className="h-8 w-8 text-slate-500 hover:bg-slate-200/50"
+        >
+          {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        </Button>
+      </div>
+
+      {/* New Chat Button */}
+      <div className="p-3">
+        {isCollapsed ? (
+          <Tooltip>
+            <TooltipTrigger 
+              render={<Button variant="default" size="icon" className="w-10 h-10 rounded-xl bg-blue-600 hover:bg-blue-700 shadow-sm" />}
+            >
+              <Plus className="w-5 h-5" />
+            </TooltipTrigger>
+            <TooltipContent side="right">새 코칭 시작</TooltipContent>
+          </Tooltip>
+        ) : (
+          <Button variant="default" className="w-full justify-start gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm h-11 px-4">
+            <Plus className="w-4 h-4" />
+            <span className="font-semibold">새 코칭 시작</span>
+          </Button>
+        )}
+      </div>
+
+      {/* History Section */}
+      <div className="flex-1 flex flex-col min-h-0">
+        <div className={cn(
+          "px-4 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2",
+          isCollapsed && "justify-center px-0"
+        )}>
+          <History className="w-3.5 h-3.5" />
+          {!isCollapsed && <span>코칭 히스토리</span>}
+        </div>
+        <ScrollArea className="flex-1 px-2">
+          <div className="space-y-1">
+            {mockHistory.map((item) => (
+              <Tooltip key={item.id}>
+                <TooltipTrigger 
+                  render={
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "w-full justify-start gap-3 h-11 rounded-xl text-slate-600 hover:bg-white hover:text-blue-600 transition-all group border border-transparent hover:border-slate-200/60",
+                        isCollapsed ? "px-0 justify-center" : "px-3"
+                      )}
+                    />
+                  }
+                >
+                  <MessageSquare className={cn("w-4 h-4 shrink-0", isCollapsed ? "text-slate-400" : "text-slate-400 group-hover:text-blue-500")} />
+                  {!isCollapsed && (
+                    <div className="flex flex-col items-start overflow-hidden text-left">
+                      <span className="text-sm font-semibold truncate w-full leading-tight">{item.title}</span>
+                      <span className="text-[10px] text-slate-400 mt-0.5">{item.date}</span>
+                    </div>
+                  )}
+                </TooltipTrigger>
+                {isCollapsed && <TooltipContent side="right">{item.title}</TooltipContent>}
+              </Tooltip>
+            ))}
+          </div>
+        </ScrollArea>
+      </div>
+
+      {/* Bottom Actions */}
+      <div className="p-3 border-t border-slate-200/60 space-y-1">
+        <Tooltip>
+          <TooltipTrigger 
+            render={
+              <Button variant="ghost" className={cn("w-full justify-start gap-3 h-10 rounded-xl text-slate-600 hover:bg-white", isCollapsed && "px-0 justify-center")} />
+            }
+          >
+            <HelpCircle className="w-4 h-4 text-slate-400" />
+            {!isCollapsed && <span className="text-sm font-medium">도움말</span>}
+          </TooltipTrigger>
+          {isCollapsed && <TooltipContent side="right">도움말</TooltipContent>}
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger 
+            render={
+              <Button variant="ghost" className={cn("w-full justify-start gap-3 h-10 rounded-xl text-slate-600 hover:bg-white", isCollapsed && "px-0 justify-center")} />
+            }
+          >
+            <Settings className="w-4 h-4 text-slate-400" />
+            {!isCollapsed && <span className="text-sm font-medium">설정</span>}
+          </TooltipTrigger>
+          {isCollapsed && <TooltipContent side="right">설정</TooltipContent>}
+        </Tooltip>
+      </div>
+    </aside>
+  );
+}
