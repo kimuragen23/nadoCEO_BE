@@ -32,7 +32,9 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
     resetSession();
   };
 
-  const handleSelectSession = async (sessionId: string) => {
+  const handleSelectSession = async (sessionId: string, e?: React.MouseEvent) => {
+    // 버튼 포커스가 페이지 스크롤을 유발하므로 해제
+    (e?.currentTarget as HTMLElement)?.blur();
     try {
       const session = await getSession(sessionId);
       const raw: Array<{ role: string; content: string }> = JSON.parse(session.messages || '[]');
@@ -131,7 +133,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                   render={
                     <Button
                       variant="ghost"
-                      onClick={() => handleSelectSession(item.id)}
+                      onClick={(e) => handleSelectSession(item.id, e)}
                       className={cn(
                         "w-full justify-start gap-3 h-11 rounded-xl text-slate-600 hover:bg-white hover:text-blue-600 transition-all group border border-transparent hover:border-slate-200/60",
                         isCollapsed ? "px-0 justify-center" : "px-3"
