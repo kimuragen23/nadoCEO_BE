@@ -15,6 +15,14 @@ public interface SpringDataLearningPathRepo extends JpaRepository<LearningPathEv
     List<LearningPathEvent> findByStudentIdOrderByCreatedAtDesc(UUID studentId);
 
     @Query(value = """
+            SELECT DISTINCT ON (content) content, created_at
+            FROM learning_path_events
+            WHERE student_id = :studentId AND event_type = 'TERM_SEARCHED'
+            ORDER BY content, created_at DESC
+            """, nativeQuery = true)
+    List<Object[]> findTermsByStudent(@Param("studentId") UUID studentId);
+
+    @Query(value = """
             SELECT content, COUNT(*) AS search_count
             FROM learning_path_events
             WHERE course_id = :courseId AND event_type = 'TERM_SEARCHED'
