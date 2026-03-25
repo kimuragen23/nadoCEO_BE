@@ -1,0 +1,122 @@
+{
+  "realm": "nadoceo",
+  "enabled": true,
+  "displayName": "NADOCEO Coaching AI",
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "bruteForceProtected": true,
+  "failureFactor": 5,
+  "waitIncrementSeconds": 60,
+  "accessTokenLifespan": 900,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "roles": {
+    "realm": [
+      {
+        "name": "admin",
+        "description": "시스템 관리자",
+        "composite": true,
+        "composites": {
+          "realm": ["instructor", "student"]
+        }
+      },
+      {
+        "name": "instructor",
+        "description": "강사 — FAQ 관리, 학생 분석",
+        "composite": true,
+        "composites": {
+          "realm": ["student"]
+        }
+      },
+      {
+        "name": "student",
+        "description": "학생 — 코칭 세션, 학습 경로"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "nadoceo-backend",
+      "name": "NADOCEO Backend API",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "nadoceo-backend-secret",
+      "serviceAccountsEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false,
+      "attributes": {
+        "access.token.lifespan": "900"
+      }
+    },
+    {
+      "clientId": "nadoceo-frontend",
+      "name": "NADOCEO Frontend SPA",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "http://localhost:3000/*",
+        "http://localhost:5173/*",
+        "https://nadoceo.gajok.app/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "https://nadoceo.gajok.app"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Admin",
+      "lastName": "NADOCEO",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin",
+          "temporary": true
+        }
+      ],
+      "realmRoles": ["admin"]
+    },
+    {
+      "username": "instructor01",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "김",
+      "lastName": "강사",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "instructor01",
+          "temporary": true
+        }
+      ],
+      "realmRoles": ["instructor"]
+    },
+    {
+      "username": "student01",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "이",
+      "lastName": "학생",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "student01",
+          "temporary": true
+        }
+      ],
+      "realmRoles": ["student"]
+    }
+  ]
+}
