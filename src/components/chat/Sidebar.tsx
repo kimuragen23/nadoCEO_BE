@@ -47,14 +47,28 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
     (e?.currentTarget as HTMLElement)?.blur();
     try {
       const session = await getSession(sessionId);
-      const raw: Array<{ role: string; content: string; faqHits?: any[] }> = JSON.parse(session.messages || '[]');
-      const messages: Message[] = raw.map((m, i) => ({
-        id: `${sessionId}-${i}`,
-        role: m.role as 'user' | 'assistant',
-        content: m.content,
-        faqHits: m.faqHits,
-        createdAt: session.createdAt,
-      }));
+      let rawStr = session.messages || '[]';
+      // 이중 이스케이프 처리
+      let raw: Array<{ role: string; content: string; faqHits?: any }>;
+      try {
+        raw = typeof rawStr === 'string' ? JSON.parse(rawStr) : rawStr;
+      } catch {
+        raw = [];
+      }
+      const messages: Message[] = raw.map((m, i) => {
+        // faqHits가 string이면 한번 더 파싱
+        let faqHits = m.faqHits;
+        if (typeof faqHits === 'string') {
+          try { faqHits = JSON.parse(faqHits); } catch { faqHits = undefined; }
+        }
+        return {
+          id: `${sessionId}-${i}`,
+          role: m.role as 'user' | 'assistant',
+          content: m.content,
+          faqHits: Array.isArray(faqHits) ? faqHits : undefined,
+          createdAt: session.createdAt,
+        };
+      });
       restoreSession(sessionId, messages, session.totalTurns);
     } catch (err) {
       console.error('Failed to load session:', err);
