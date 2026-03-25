@@ -13,7 +13,7 @@ public class SearchFaqUseCase {
 
     private final VectorSearchPort vectorSearch;
 
-    @Value("${nadoceo.coaching.faq-similarity-threshold:0.85}")
+    @Value("${nadoceo.coaching.faq-similarity-threshold:0.7}")
     private double similarityThreshold;
 
     public SearchFaqUseCase(VectorSearchPort vectorSearch) {
@@ -21,17 +21,23 @@ public class SearchFaqUseCase {
     }
 
     public Optional<FaqSearchResult> execute(String query, UUID courseId) {
-        return vectorSearch.search(query, 5, similarityThreshold)
-                .stream()
-                .filter(doc -> courseId.toString().equals(doc.metadata().get("courseId")))
+        var results = vectorSearch.search(query, 5, 0.0);
+
+        return results.stream()
+                .filter(doc -> courseId.toString().equals(String.valueOf(doc.metadata().get("courseId"))))
                 .findFirst()
-                .map(doc -> new FaqSearchResult(
-                        UUID.fromString(doc.metadata().get("faqId").toString()),
-                        doc.metadata().get("question").toString(),
-                        doc.metadata().get("answer").toString(),
-                        doc.metadata().containsKey("distance")
-                                ? 1.0 - ((Number) doc.metadata().get("distance")).doubleValue()
-                                : similarityThreshold
-                ));
+                .map(doc -> {
+                    double similarity = 0.0;
+                    if (doc.metadata().containsKey("distance")) {
+                        similarity = 1.0 - ((Number) doc.metadata().get("distance")).doubleValue();
+                    }
+                    return new FaqSearchResult(
+                            UUID.fromString(doc.metadata().get("faqId").toString()),
+                            doc.metadata().get("question").toString(),
+                            doc.metadata().get("answer").toString(),
+                            similarity
+                    );
+                })
+                .filter(result -> result.similarity() >= similarityThreshold);
     }
 }

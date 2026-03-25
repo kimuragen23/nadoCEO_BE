@@ -2,13 +2,13 @@ package com.nadoceo.coaching.application.port;
 
 import reactor.core.publisher.Flux;
 
-/**
- * AI 채팅 Output Port.
- * 코칭 컨텍스트가 AI 프로바이더에 의존하지 않도록 추상화.
- */
+import java.util.List;
+
 public interface AiChatPort {
 
-    Flux<String> streamSocratic(String userMessage, String additionalContext);
+    record ChatMessage(String role, String content) {}
 
-    Flux<String> streamTermExplanation(String term);
+    Flux<String> streamSocratic(String userMessage, List<ChatMessage> history, String additionalContext, int currentTurn);
+
+    Flux<String> streamTermExplanation(String term, List<ChatMessage> history);
 }
