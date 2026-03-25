@@ -63,6 +63,17 @@ public class ChatController {
         return ResponseEntity.ok(summaries);
     }
 
+    @Operation(summary = "학생의 최근 SUB 세션 조회")
+    @GetMapping("/sub-latest")
+    public ResponseEntity<ChatSession> getLatestSubSession(@RequestParam UUID studentId) {
+        var sessions = sessionRepository.findByStudentIdAndChatType(
+                studentId, com.nadoceo.coaching.domain.ChatType.SUB);
+        if (sessions.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(sessions.get(0));
+    }
+
     @Operation(summary = "메시지별 피드백", description = "각 AI 응답에 대해 좋아요/싫어요/해결완료 피드백")
     @PostMapping("/message-feedback")
     public ResponseEntity<Map<String, Object>> messageFeedback(@Valid @RequestBody MessageFeedbackRequest request) {
