@@ -10,7 +10,7 @@
 
 ```mermaid
 sequenceDiagram
-    actor Student as 학생 (Frontend)
+    actor Student as 학생 Frontend
     participant Controller as ChatController
     participant UseCase as ProcessMessageUseCase
     participant Engine as CoachingEngine
@@ -29,7 +29,7 @@ sequenceDiagram
     Session-->>UseCase: ChatSession
 
     UseCase->>Session: recordQuestion(message)
-    Note over Session: advanceTurn() + <br/>registerEvent(StudentQuestionAsked)
+    Note over Session: advanceTurn() +<br/>registerEvent(StudentQuestionAsked)
 
     UseCase->>Engine: determine(message, chatType, turn)
     Engine-->>UseCase: CoachingState
@@ -44,18 +44,18 @@ sequenceDiagram
         UseCase->>AI: streamSocratic(message, null)
         AI->>GPT: ChatClient.stream()
         GPT-->>AI: SSE chunks
-        AI-->>Controller: Flux<String>
-        Controller-->>Student: text/event-stream (실시간)
-        Note over UseCase: onComplete →
+        AI-->>Controller: Flux of String
+        Controller-->>Student: text/event-stream
+        Note over UseCase: onComplete
         UseCase->>Publisher: publishEvent(SocraticQuestionDelivered)
     else CoachingState = FAQ_SEARCH
-        ref over UseCase: FAQ 검색 플로우 (아래 참조)
+        Note over UseCase: FAQ 검색 플로우 (2번 참조)
     else CoachingState = CONTINUE
         UseCase->>AI: streamSocratic(message, null)
-        AI-->>Controller: Flux<String>
+        AI-->>Controller: Flux of String
         Controller-->>Student: text/event-stream
     else CoachingState = TERM_LOOKUP
-        ref over UseCase: 용어 검색 플로우 (아래 참조)
+        Note over UseCase: 용어 검색 플로우 (3번 참조)
     end
 ```
 
@@ -67,13 +67,13 @@ CoachingState가 FAQ_SEARCH일 때, pgvector에서 유사도 검색을 수행하
 
 ```mermaid
 sequenceDiagram
-    actor Student as 학생 (Frontend)
+    actor Student as 학생 Frontend
     participant UseCase as ProcessMessageUseCase
     participant Port as KnowledgeSearchPort
     participant Adapter as KnowledgeSearchPortAdapter
     participant Search as SearchFaqUseCase
     participant Vector as PgVectorSearchAdapter
-    participant PG as pgvector (PostgreSQL)
+    participant PG as pgvector PostgreSQL
     participant AI as SpringAiChatAdapter
     participant GPT as OpenAI GPT-4o
     participant Publisher as EventPublisher
@@ -121,7 +121,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    actor Student as 학생 (Frontend)
+    actor Student as 학생 Frontend
     participant Controller as ChatController
     participant UseCase as ProcessMessageUseCase
     participant Engine as CoachingEngine
@@ -146,7 +146,7 @@ sequenceDiagram
     Note over AI: TERM_PROMPT:<br/>"용어를 쉽고 명확하게 설명"
     AI->>GPT: ChatClient.stream()
     GPT-->>AI: SSE chunks
-    AI-->>Controller: Flux<String>
+    AI-->>Controller: Flux of String
     Controller-->>Student: text/event-stream<br/>"객체 참조란 메모리 상의<br/>객체를 가리키는 주소값입니다..."
 ```
 
@@ -158,7 +158,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    actor Student as 학생 (Frontend)
+    actor Student as 학생 Frontend
     participant Controller as ChatController
     participant UseCase as SubmitFeedbackUseCase
     participant Session as ChatSession
@@ -195,7 +195,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    actor Student as 학생 (Frontend)
+    actor Student as 학생 Frontend
     participant Controller as LearningPathController
     participant UseCase as GetTimelineUseCase
     participant Repo as LearningPathRepository
@@ -224,7 +224,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    actor Instructor as 강사 (Frontend)
+    actor Instructor as 강사 Frontend
     participant Controller as AnalyticsController
     participant UseCase as GetAnalyticsUseCase
     participant LPRepo as LearningPathRepository
@@ -268,20 +268,20 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor User as 학생/강사
-    participant FE as Frontend<br/>(React + Vite)
-    participant Proxy as Vite Proxy<br/>(:3000 → :21009)
-    participant K3s as K3s NodePort<br/>(:21009)
-    participant Boot as Spring Boot<br/>(Netty :8080)
-    participant Security as SecurityConfig<br/>(OAuth2 / permitAll)
-    participant Domain as Domain Layer<br/>(UseCase + Entity)
+    participant FE as Frontend React+Vite
+    participant Proxy as Vite Proxy
+    participant K3s as K3s NodePort 21009
+    participant Boot as Spring Boot Netty
+    participant Security as SecurityConfig
+    participant Domain as Domain Layer
     participant AI as OpenAI GPT-4o
-    participant PG as PostgreSQL<br/>+ pgvector
-    participant KC as Keycloak<br/>(nadoceo realm)
+    participant PG as PostgreSQL + pgvector
+    participant KC as Keycloak nadoceo
 
     User->>FE: 메시지 입력
     FE->>Proxy: POST /api/v1/chat
-    Proxy->>K3s: → localhost:21009
-    K3s->>Boot: → Pod :8080
+    Proxy->>K3s: localhost:21009
+    K3s->>Boot: Pod :8080
 
     opt JWT 인증 활성화 시
         Boot->>Security: JWT 검증
@@ -299,7 +299,7 @@ sequenceDiagram
     end
 
     Domain->>AI: ChatClient.stream()
-    AI-->>Boot: SSE chunks (Flux<String>)
+    AI-->>Boot: SSE chunks Flux of String
 
     par 비동기 이벤트 처리
         Domain->>PG: learning_path_events INSERT
@@ -319,11 +319,11 @@ coaching 컨텍스트에서 발행된 도메인 이벤트가 analytics 컨텍스
 
 ```mermaid
 sequenceDiagram
-    participant Session as ChatSession<br/>(AggregateRoot)
-    participant UseCase as ProcessMessage<br/>UseCase
-    participant Publisher as Application<br/>EventPublisher
-    participant Listener as Coaching<br/>EventListener
-    participant Record as RecordEvent<br/>UseCase
+    participant Session as ChatSession AggregateRoot
+    participant UseCase as ProcessMessageUseCase
+    participant Publisher as ApplicationEventPublisher
+    participant Listener as CoachingEventListener
+    participant Record as RecordEventUseCase
     participant DB as learning_path_events
 
     Note over Session: 도메인 이벤트 수집 (Transient)
