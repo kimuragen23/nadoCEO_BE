@@ -1,19 +1,13 @@
-# Dependencies
-node_modules/
-
-# Build
-dist/
+# Gradle
+.gradle/
 build/
-coverage/
-
-# Environment
-.env
-.env.local
-.env.*.local
-!.env.example
+!gradle/wrapper/gradle-wrapper.jar
 
 # IDE
 .idea/
+*.iml
+*.ipr
+*.iws
 .vscode/
 *.swp
 *~
@@ -22,11 +16,47 @@ coverage/
 .DS_Store
 Thumbs.db
 
+# Java
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+*.war
+*.ear
+hs_err_pid*
+
+# Spring Boot
+application-local.yml
+application-secret.yml
+
+# Environment / Secrets
+.env
+*.env.local
+
+# K8s (로컬 배포 전용)
+k8s/secret.yml
+
+# Docker
+docker-compose.override.yml
+
 # Logs
 *.log
-npm-debug.log*
+logs/
 
 # Temporary
 tmp/
 temp/
-.gradle/
+
+# Node (프론트엔드 파일이 섞이지 않도록)
+node_modules/
+package.json
+package-lock.json
+dist/
+*.tsx
+*.jsx
+vite.config.*
+tsconfig.*
+index.html
+components.json
+metadata.json
+nginx.conf
+.env.example
