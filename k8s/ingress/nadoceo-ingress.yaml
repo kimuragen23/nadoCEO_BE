@@ -1,0 +1,94 @@
+### 1. TLS 인증서 발급용 Ingress (cert-manager + Let's Encrypt)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nadoceo-cert
+  namespace: default
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - nadoceo.squirb.com
+      secretName: nadoceo-tls
+  rules:
+    - host: nadoceo.squirb.com
+
+---
+
+### 2. 프론트엔드 (nginx) Service + Endpoints
+### nginx가 /api, /auth, / 모두 처리
+apiVersion: v1
+kind: Service
+metadata:
+  name: nadoceo-frontend
+  namespace: default
+spec:
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: nadoceo-frontend
+  namespace: default
+subsets:
+  - addresses:
+      - ip: 192.168.45.246
+    ports:
+      - name: http
+        port: 3000
+
+---
+
+### 3. Traefik IngressRoute — 모든 트래픽을 nginx로
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: nadoceo-app
+  namespace: default
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`nadoceo.squirb.com`)
+      services:
+        - name: nadoceo-frontend
+          port: 3000
+  tls:
+    secretName: nadoceo-tls
+
+---
+
+### 4. HTTP → HTTPS 리다이렉트
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: nadoceo-redirect-https
+  namespace: default
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: nadoceo-http-redirect
+  namespace: default
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`nadoceo.squirb.com`)
+      middlewares:
+        - name: nadoceo-redirect-https
+      services:
+        - name: nadoceo-frontend
+          port: 3000
